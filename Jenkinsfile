@@ -14,6 +14,14 @@ pipeline {
             }
         }
 
+        stage('Build') {
+            steps {
+                dir('docker-online-courese-main') {
+                    bat 'npm install'
+                    bat 'npm run build'
+                }
+            }
+        }
         stage('Build Docker Image') {
             steps {
                 bat "docker build -t %IMAGE_NAME%:%IMAGE_TAG% ."
