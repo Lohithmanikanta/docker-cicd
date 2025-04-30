@@ -14,16 +14,9 @@ pipeline {
             }
         }
 
-        stage('Build') {
-            steps {
-                dir('docker-online-courese-main') {
-                    bat 'npm install'
-                    bat 'npm run build'
-                }
-            }
-        }
         stage('Build Docker Image') {
             steps {
+                // Assuming Dockerfile is in the root of the repository
                 bat "docker build -t %IMAGE_NAME%:%IMAGE_TAG% ."
                 bat "docker tag %IMAGE_NAME%:%IMAGE_TAG% %IMAGE_NAME%:latest"
             }
