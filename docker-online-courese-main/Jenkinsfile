@@ -10,7 +10,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/Yaswanth-Marri/docker-online-courese.git'
+                git branch: 'main', url: 'https://github.com/Lohithmanikanta/docker-cicd.git'
             }
         }
 
