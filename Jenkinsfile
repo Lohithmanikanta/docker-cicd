@@ -16,8 +16,8 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                // Assuming Dockerfile is in the root of the repository
-                bat "docker build -t %IMAGE_NAME%:%IMAGE_TAG% ."
+                // Adjust the build path if Dockerfile is in a subfolder (e.g., docker/Dockerfile)
+                bat "docker build -t %IMAGE_NAME%:%IMAGE_TAG% -f docker/Dockerfile ."
                 bat "docker tag %IMAGE_NAME%:%IMAGE_TAG% %IMAGE_NAME%:latest"
             }
         }
