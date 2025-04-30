@@ -2,11 +2,13 @@ pipeline {
     agent any
 
     environment {
-        PATH = "/usr/local/bin:$PATH" // Add Docker path to Jenkins environment
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub')
+        IMAGE_NAME = "lohith066/online-course"
+        IMAGE_TAG = "${env.BUILD_NUMBER}"
     }
 
     stages {
-        stage('Clone Repository') {
+        stage('Checkout') {
             steps {
                 git branch: 'main', url: 'https://github.com/Yaswanth-Marri/docker-online-courese.git'
             }
@@ -14,37 +16,50 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh '/usr/local/bin/docker build -t yaswanthmarri/online-course:latest .' // Use full path
+                bat "docker build -t %IMAGE_NAME%:%IMAGE_TAG% ."
+                bat "docker tag %IMAGE_NAME%:%IMAGE_TAG% %IMAGE_NAME%:latest"
             }
         }
 
         stage('Login to Docker Hub') {
             steps {
-                script {
-                    withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                        sh '/usr/local/bin/docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD'
-                    }
-                }
+                bat '''
+                echo|set /p=%DOCKERHUB_CREDENTIALS_PSW%|docker login -u %DOCKERHUB_CREDENTIALS_USR% --password-stdin
+                '''
+            }
+        }
+
+        stage('Push to Docker Hub') {
+            steps {
+                bat "docker push %IMAGE_NAME%:%IMAGE_TAG%"
+                bat "docker push %IMAGE_NAME%:latest"
             }
         }
 
         stage('Stop Old Container') {
             steps {
-                sh '/usr/local/bin/docker stop online-course-container || true'
-                sh '/usr/local/bin/docker rm online-course-container || true'
+                bat 'docker stop online-course-container || exit 0'
+                bat 'docker rm online-course-container || exit 0'
             }
         }
 
         stage('Run New Container') {
             steps {
-                sh '/usr/local/bin/docker run -d -p 5001:80 --name online-course-container yaswanthmarri/online-course:latest'
+                bat "docker run -d -p 5001:80 --name online-course-container %IMAGE_NAME%:latest"
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                echo 'Deployment step placeholder - customize based on your environment.'
             }
         }
     }
 
     post {
         always {
-            echo 'Pipeline completed!'
+            bat 'docker logout'
+            bat "docker rmi %IMAGE_NAME%:%IMAGE_TAG% || exit 0"
         }
         success {
             echo 'Pipeline succeeded!'
